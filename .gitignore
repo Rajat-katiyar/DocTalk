@@ -33,3 +33,7 @@ yarn-error.log*
 # typescript
 *.tsbuildinfo
 next-env.d.ts
+
+# Old Vite/React source files (not used in Next.js)
+src/
+src.backup/
