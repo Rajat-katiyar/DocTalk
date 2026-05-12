@@ -9,16 +9,22 @@ const Success = () => {
     const [loading, setLoading] = useState(true)
 
     useEffect(() => {
-        fetch('/Data/success.json')
-            .then(res => res.json())
-            .then(data => {
-                setSuccessData(data)
-                setLoading(false)
-            })
-            .catch(error => {
+        const fetchSuccessData = async () => {
+            try {
+                const res = await fetch('/api/success')
+                if (!res.ok) {
+                    throw new Error('Unable to load success metrics')
+                }
+                const data = await res.json()
+                setSuccessData(data.successMetrics || [])
+            } catch (error) {
                 console.error('Error loading success data:', error)
+            } finally {
                 setLoading(false)
-            })
+            }
+        }
+
+        fetchSuccessData()
     }, [])
 
     if (loading) {

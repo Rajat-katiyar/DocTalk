@@ -13,12 +13,22 @@ function MainSectionContent() {
     const searchQuery = searchParams.get('search')?.toLowerCase() || ''
 
     useEffect(() => {
-        fetch('/Data/doctors.json')
-            .then(res => res.json())
-            .then(data => {
-                setDoctors(data)
+        const fetchDoctors = async () => {
+            try {
+                const res = await fetch('/api/doctors')
+                if (!res.ok) {
+                    throw new Error('Unable to load doctors')
+                }
+                const payload = await res.json()
+                setDoctors(payload.doctors || [])
+            } catch (error) {
+                console.error('Error fetching doctors:', error)
+            } finally {
                 setLoading(false)
-            })
+            }
+        }
+
+        fetchDoctors()
     }, [])
 
     const filteredDoctors = doctors.filter(doctor => {

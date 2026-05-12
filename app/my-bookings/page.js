@@ -39,19 +39,18 @@ export default function MyBookings() {
     const processChartData = (appointments) => {
         // Group appointments by doctor
         const doctorGroups = appointments.reduce((acc, app) => {
-            if (!acc[app.doctorName]) {
-                acc[app.doctorName] = []
+            const doctorName = app.doctor?.name || 'Unknown Doctor'
+            if (!acc[doctorName]) {
+                acc[doctorName] = []
             }
-            acc[app.doctorName].push(app)
+            acc[doctorName].push(app)
             return acc
         }, {})
 
-        // Create data points for each doctor
         const doctors = Object.keys(doctorGroups)
 
-        // Create a data point for each doctor
         return doctors.map(doctor => {
-            const totalFee = doctorGroups[doctor].reduce((sum, app) => sum + parseInt(app.fee), 0)
+            const totalFee = doctorGroups[doctor].reduce((sum, app) => sum + Number(app.doctor?.consultationFee || 0), 0)
             return {
                 name: doctor,
                 fee: totalFee
@@ -60,24 +59,44 @@ export default function MyBookings() {
     }
 
     useEffect(() => {
-        if (typeof window !== 'undefined') {
-            const storedAppointments = localStorage.getItem('appointments')
-            if (storedAppointments) {
-                const parsedAppointments = JSON.parse(storedAppointments)
-                setAppointments(parsedAppointments)
-                setChartData(processChartData(parsedAppointments))
+        const fetchAppointments = async () => {
+            try {
+                const res = await fetch('/api/appointments')
+                if (!res.ok) {
+                    throw new Error('Unable to load appointments')
+                }
+                const data = await res.json()
+                setAppointments(data.appointments || [])
+                setChartData(processChartData(data.appointments || []))
+            } catch (error) {
+                console.error('Error loading appointments:', error)
+            } finally {
+                setLoading(false)
             }
-            setLoading(false)
         }
+
+        fetchAppointments()
     }, [])
 
-    const handleCancelAppointment = (appointmentId) => {
-        const canceledAppointment = appointments.find(app => app.id === appointmentId)
-        const updatedAppointments = appointments.filter(app => app.id !== appointmentId)
-        setAppointments(updatedAppointments)
-        setChartData(processChartData(updatedAppointments))
-        localStorage.setItem('appointments', JSON.stringify(updatedAppointments))
-        toast.warning(`Appointment with ${canceledAppointment.doctorName} cancelled`)
+    const handleCancelAppointment = async (appointmentId) => {
+        try {
+            const res = await fetch(`/api/appointments?id=${appointmentId}`, {
+                method: 'DELETE',
+            })
+            const data = await res.json()
+            if (!res.ok) {
+                throw new Error(data.error || 'Unable to cancel appointment')
+            }
+
+            const canceledAppointment = appointments.find(app => app.id === appointmentId)
+            const updatedAppointments = appointments.filter(app => app.id !== appointmentId)
+            setAppointments(updatedAppointments)
+            setChartData(processChartData(updatedAppointments))
+            toast.warning(`Appointment with ${canceledAppointment?.doctor?.name || 'the doctor'} cancelled`)
+        } catch (error) {
+            console.error('Cancellation error:', error)
+            toast.error(error.message || 'Cancellation failed')
+        }
     }
 
     if (loading) {
