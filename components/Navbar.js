@@ -4,13 +4,11 @@ import { useState } from 'react'
 import Link from 'next/link'
 import { usePathname } from 'next/navigation'
 import { Menu, X } from 'lucide-react'
-import { signOut, useSession } from 'next-auth/react'
 
 const Navbar = () => {
     const pathname = usePathname()
     const [mobileMenuOpen, setMobileMenuOpen] = useState(false)
-    const { data: session } = useSession()
-
+    
     const isActive = (path) => pathname === path
 
     const navLinks = [
@@ -52,30 +50,6 @@ const Navbar = () => {
                         ))}
                     </div>
 
-                    {/* Authentication Actions (Desktop) */}
-                    <div className="hidden lg:flex items-center gap-4">
-                      {session?.user ? (
-                        <button
-                          onClick={() => signOut({ callbackUrl: '/' })}
-                          className="btn bg-red-500 hover:bg-red-600 text-white border-none px-5 rounded-full transition-colors"
-                        >
-                          Sign Out
-                        </button>
-                      ) : (
-                        <>
-                          <Link href="/auth/signin" className="text-gray-700 hover:text-blue-600">
-                            Login
-                          </Link>
-                          <Link 
-                            href="/auth/register" 
-                            className="btn bg-blue-600 hover:bg-blue-700 text-white border-none px-5 rounded-full transition-colors"
-                          >
-                            Register
-                          </Link>
-                        </>
-                      )}
-                    </div>
-
                     {/* Emergency Button (Desktop) */}
                     <div className="hidden lg:flex flex-shrink-0">
                         <Link 
@@ -115,34 +89,6 @@ const Navbar = () => {
                                     {link.label}
                                 </Link>
                             ))}
-                            {session?.user ? (
-                                <button
-                                    onClick={() => {
-                                        setMobileMenuOpen(false)
-                                        signOut({ callbackUrl: '/' })
-                                    }}
-                                    className="w-full rounded-full bg-red-500 text-white py-3 hover:bg-red-600 transition-colors"
-                                >
-                                    Sign Out
-                                </button>
-                            ) : (
-                                <>
-                                    <Link
-                                        href="/auth/signin"
-                                        onClick={() => setMobileMenuOpen(false)}
-                                        className="text-base font-medium text-gray-700 hover:text-blue-600"
-                                    >
-                                        Login
-                                    </Link>
-                                    <Link
-                                        href="/auth/register"
-                                        onClick={() => setMobileMenuOpen(false)}
-                                        className="btn bg-blue-600 hover:bg-blue-700 text-white border-none px-6 rounded-full transition-colors w-fit"
-                                    >
-                                        Register
-                                    </Link>
-                                </>
-                            )}
                             <Link 
                                 href="/emergency"
                                 onClick={() => setMobileMenuOpen(false)}

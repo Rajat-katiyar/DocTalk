@@ -13,14 +13,16 @@ import DashboardCalendar from '@/components/DashboardCalendar'
 
 export default function StylistDashboard() {
     const [sidebarOpen, setSidebarOpen] = useState(false)
-    const [stats] = useState({
+    const [stats, setStats] = useState({
         totalClients: '500+',
         todayClients: '012',
         todayAppointments: '015'
     })
 
     useEffect(() => {
-        document.title = 'Tosha Stylist Dashboard | DocTalk'
+        if (typeof window !== 'undefined') {
+            document.title = 'Tosha Stylist Dashboard | DocTalk'
+        }
     }, [])
 
     const stylistData = {
@@ -30,26 +32,34 @@ export default function StylistDashboard() {
     }
 
     return (
-        <div className="min-h-screen bg-gray-50">
-            <DashboardSidebar
-                userType="stylist"
-                userData={stylistData}
-                isOpen={sidebarOpen}
-                onClose={() => setSidebarOpen(false)}
-            />
+        <div className="flex min-h-screen bg-gray-50" style={{ marginTop: 0, marginBottom: 0 }}>
+            {/* Sidebar */}
+            <div className={`fixed lg:static inset-y-0 left-0 z-30 transform ${sidebarOpen ? 'translate-x-0' : '-translate-x-full lg:translate-x-0'} transition-transform duration-300`}>
+                <DashboardSidebar userType="stylist" userData={stylistData} />
+                {sidebarOpen && (
+                    <div 
+                        className="fixed inset-0 bg-black bg-opacity-50 lg:hidden z-20"
+                        onClick={() => setSidebarOpen(false)}
+                    ></div>
+                )}
+            </div>
 
-            <div className="lg:pl-64">
-                <DashboardHeader title="Tosha Stylist Dashboard" onMenuClick={() => setSidebarOpen(true)} />
-
-                <main className="p-4 sm:p-6">
+            {/* Main Content */}
+            <div className="flex-1 lg:ml-0">
+                <DashboardHeader title="Tosha Stylist Dashboard" onMenuClick={() => setSidebarOpen(!sidebarOpen)} />
+                
+                <main className="p-6">
+                    {/* Stats Cards */}
                     <DashboardStats stats={stats} type="stylist" />
 
+                    {/* Middle Row */}
                     <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 mb-6">
                         <PatientSummaryChart type="stylist" />
                         <TodayAppointments type="stylist" />
                         <NextPatientDetails type="stylist" />
                     </div>
 
+                    {/* Bottom Row */}
                     <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
                         <ReviewChart type="stylist" />
                         <AppointmentRequests type="stylist" />
@@ -60,3 +70,4 @@ export default function StylistDashboard() {
         </div>
     )
 }
+

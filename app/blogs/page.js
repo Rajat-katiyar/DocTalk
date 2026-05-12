@@ -50,22 +50,16 @@ export default function Blogs() {
             document.title = 'Blogs | DocTalk'
         }
 
-        const fetchBlogs = async () => {
-            try {
-                const res = await fetch('/api/blogs')
-                if (!res.ok) {
-                    throw new Error('Unable to load blogs')
-                }
-                const data = await res.json()
-                setBlogs(data.blogs || [])
-            } catch (error) {
-                console.error('Error fetching blogs:', error)
-            } finally {
+        fetch('/Data/blogs.json')
+            .then(res => res.json())
+            .then(data => {
+                setBlogs(data.blogs)
                 setLoading(false)
-            }
-        }
-
-        fetchBlogs()
+            })
+            .catch(error => {
+                console.error('Error fetching blogs:', error)
+                setLoading(false)
+            })
     }, [])
 
     if (loading) {

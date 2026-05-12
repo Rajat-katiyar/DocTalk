@@ -20,34 +20,21 @@ export default function DoctorDetails() {
     }, [doctor])
 
     useEffect(() => {
-        const loadDoctorAndBookings = async () => {
-            setLoading(true)
-            try {
-                const [doctorRes, appointmentsRes] = await Promise.all([
-                    fetch(`/api/doctors/${id}`),
-                    fetch('/api/appointments'),
-                ])
+        setLoading(true)
+        // Check if user has already booked
+        if (typeof window !== 'undefined') {
+            const bookings = JSON.parse(localStorage.getItem('appointments')) || []
+            const existingBooking = bookings.find(booking => booking.doctorId === parseInt(id))
+            setHasBooked(!!existingBooking)
 
-                if (!doctorRes.ok) {
-                    throw new Error('Doctor not found')
-                }
-
-                const doctorData = await doctorRes.json()
-                const appointmentsData = await appointmentsRes.json()
-
-                setDoctor(doctorData)
-                const existingBooking = (appointmentsData.appointments || []).find(
-                    (appointment) => appointment.doctor?.id === id
-                )
-                setHasBooked(!!existingBooking)
-            } catch (error) {
-                console.error('Error loading doctor or bookings:', error)
-            } finally {
-                setLoading(false)
-            }
+            fetch('/Data/doctors.json')
+                .then(res => res.json())
+                .then(data => {
+                    const selectedDoctor = data.find(doc => doc.id === parseInt(id))
+                    setDoctor(selectedDoctor)
+                    setLoading(false)
+                })
         }
-
-        loadDoctorAndBookings()
     }, [id])
 
     if (loading) {
@@ -73,7 +60,7 @@ export default function DoctorDetails() {
     const today = new Date().toLocaleDateString('en-US', { weekday: 'long' })
     const isAvailableToday = doctor.workingDays.includes(today)
 
-    const handleBooking = async () => {
+    const handleBooking = () => {
         if (!isAvailableToday) {
             toast.error('Doctor is unavailable today')
             return
@@ -84,29 +71,26 @@ export default function DoctorDetails() {
             return
         }
 
-        try {
-            const response = await fetch('/api/appointments', {
-                method: 'POST',
-                headers: {
-                    'Content-Type': 'application/json',
-                },
-                body: JSON.stringify({
-                    doctorId: doctor.id,
-                    date: new Date().toISOString(),
-                }),
-            })
-
-            const result = await response.json()
-            if (!response.ok) {
-                throw new Error(result.error || 'Unable to book appointment')
-            }
-
-            toast.success(`Appointment booked successfully with ${doctor.name}`)
-            setTimeout(() => router.push('/my-bookings'), 1200)
-        } catch (error) {
-            console.error('Booking error:', error)
-            toast.error(error.message || 'Booking failed')
+        // Create new booking with all required fields
+        const newBooking = {
+            id: Date.now(), // Unique ID for the appointment
+            doctorId: doctor.id,
+            doctorName: doctor.name,
+            education: doctor.qualification,
+            speciality: doctor.specialization,
+            fee: doctor.consultationFee,
+            bookingDate: new Date().toISOString()
         }
+
+        // Save to localStorage
+        const bookings = JSON.parse(localStorage.getItem('appointments')) || []
+        localStorage.setItem('appointments', JSON.stringify([...bookings, newBooking]))
+
+        // Show success message
+        toast.success(`Appointment booked successfully with ${doctor.name}`)
+
+        // Navigate to bookings page
+        setTimeout(() => router.push('/my-bookings'), 2000)
     }
 
     return (

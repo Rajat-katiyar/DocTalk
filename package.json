@@ -9,15 +9,11 @@
     "dev": "next dev",
     "build": "next build",
     "start": "next start",
-    "lint": "next lint",
-    "seed": "node scripts/seed.mjs"
+    "lint": "next lint"
   },
   "dependencies": {
-    "bcrypt": "^5.1.0",
     "lucide-react": "^0.469.0",
-    "mongoose": "^7.8.9",
-    "next": "^14.2.15",
-    "next-auth": "^4.24.14",
+    "next": "^15.1.5",
     "react": "^18.3.1",
     "react-countup": "^6.5.3",
     "react-dom": "^18.3.1",
